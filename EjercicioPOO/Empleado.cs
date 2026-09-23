@@ -9,6 +9,8 @@ namespace EjercicioPOO
         public string Nombre {  get; set; }
         public int Edad {  get; set; }
         public double Salario { get; set; }
+        public int ID { get; set; }
+
         public void MostrarInformacion()
         {
             Console.WriteLine("Nombre: " + Nombre);
