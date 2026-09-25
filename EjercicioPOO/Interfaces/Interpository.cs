@@ -14,3 +14,4 @@ namespace EjercicioPOO.Interfaces
         public List<T> Buscar (string nombre);
     }
 }
+//actualizacion del proyecto
