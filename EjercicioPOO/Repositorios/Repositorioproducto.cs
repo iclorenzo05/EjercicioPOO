@@ -1,4 +1,5 @@
 ﻿using EjercicioPOO.Interfaces;
+using Google.Protobuf.Collections;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
@@ -185,6 +186,46 @@ namespace EjercicioPOO.Repositorios
             }
 
             return lista;
+        }
+    
+        // BUSCAR PRODUCTO POR ID
+        public Producto BuscarPorId(int id)
+        {
+            Producto producto = null;
+
+            using (MySqlConnection conexion = new MySqlConnection(conexionMySQL))
+            {
+                string consulta = "SELECT * FROM productos WHERE ID = @ID";
+
+                using (MySqlCommand comando = new MySqlCommand(consulta, conexion))
+                {
+                    comando.Parameters.AddWithValue("@ID", id);
+
+                    try
+                    {
+                        conexion.Open();
+
+                        MySqlDataReader dr = comando.ExecuteReader();
+
+                        if (dr.Read())
+                        {
+                            producto = new Producto();
+
+                            producto.ID = Convert.ToInt32(dr["ID"]);
+                            producto.Nombre = dr["Nombre"].ToString();
+                            producto.Precio = Convert.ToDouble(dr["Precio"]);
+                        }
+
+                        dr.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error al buscar producto: " + ex.Message);
+                    }
+                }
+            }
+
+            return producto;
         }
     }
 }

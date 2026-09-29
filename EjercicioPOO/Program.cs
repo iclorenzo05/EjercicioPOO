@@ -75,6 +75,7 @@ switch (opcion)
 
                     break;
 
+
                 // ================= ACTUALIZAR =================
                 case "A":
 
@@ -94,6 +95,7 @@ switch (opcion)
 
                     break;
 
+
                 // ================= ELIMINAR =================
                 case "E":
 
@@ -104,6 +106,7 @@ switch (opcion)
 
                     break;
 
+
                 // ================= VER LA LISTA =================
                 case "V":
 
@@ -111,10 +114,13 @@ switch (opcion)
 
                     foreach (Empleado empl in listaEmpleados)
                     {
-                        Console.WriteLine($"{empl.ID} | {empl.Nombre} | {empl.Edad} | ${empl.Salario}");
+                        Console.WriteLine(
+                            $"{empl.ID} | {empl.Nombre} | {empl.Edad} | ${empl.Salario}"
+                        );
                     }
 
                     break;
+
 
                 default:
 
@@ -159,6 +165,7 @@ switch (opcion)
 
                     break;
 
+
                 // ================= ACTUALIZAR =================
                 case "A":
 
@@ -175,6 +182,7 @@ switch (opcion)
 
                     break;
 
+
                 // ================= ELIMINAR =================
                 case "E":
 
@@ -185,13 +193,14 @@ switch (opcion)
 
                     break;
 
+
                 // ================= VER LA LISTA =================
                 case "V":
 
-                    // Aquí después podemos poner la lista de productos
                     Console.WriteLine("Lista de productos.");
 
                     break;
+
 
                 default:
 
@@ -202,74 +211,132 @@ switch (opcion)
 
             break;
         }
-
-
     // ================= TIENDA =================
     case 3:
         {
+            RepositorioVentas repositorioVentas = new RepositorioVentas();
+
             Console.WriteLine("============== TIENDA ==============");
-            Console.WriteLine("1. Registrar venta");
-            Console.WriteLine("2. Ver lista de ventas");
-            Console.WriteLine("3. Eliminar venta");
+            Console.WriteLine("¿Qué movimiento realizará?");
+            Console.WriteLine("V - Vender");
+            Console.WriteLine("H - Historial");
             Console.Write("Seleccione una opción: ");
 
-            int opcionTienda = Convert.ToInt32(Console.ReadLine());
-
-            RepositorioVentas repositorioVentas = new RepositorioVentas();
-            Venta venta = new Venta();
+            string movimiento = Console.ReadLine().ToUpper();
 
             Console.WriteLine("====================================");
 
-            switch (opcionTienda)
+            switch (movimiento)
             {
-                case 1:
+                // ================= VENDER =================
+                case "V":
 
-                    venta.Empleado = empleadoLogin.Nombre;
-                    venta.CodigoMatriculaEmpleado = empleadoLogin.CodigoMatricula;
+                    Venta venta = new Venta();
 
-                    Console.WriteLine("Ingrese el nombre del producto:");
-                    venta.Producto = Console.ReadLine();
+                    venta.CodigoVenta = DateTime.Now.ToString("yyyyMMddHHmmss");
+                    venta.Fecha = DateTime.Now;
+                    venta.Empleado = empleadoLogin;
+                    venta.Productos = new List<VentaProducto>();
+                    venta.Total = 0;
 
-                    Console.WriteLine("Ingrese la cantidad:");
-                    venta.Cantidad = Convert.ToInt32(Console.ReadLine());
+                    Console.WriteLine("============== NUEVA VENTA ==============");
+                    Console.WriteLine("Código de venta: " + venta.CodigoVenta);
+                    Console.WriteLine("Empleado: " + venta.Empleado.Nombre);
+                    Console.WriteLine("Fecha: " + venta.Fecha);
 
-                    Console.WriteLine("Ingrese el precio:");
-                    venta.Precio = Convert.ToDouble(Console.ReadLine());
+                    Console.Write("Ingrese la matrícula del cliente: ");
+                    string codigoMatriculaCliente = Console.ReadLine();
 
-                    Console.WriteLine("Ingrese la matrícula del cliente:");
-                    venta.CodigoMatriculaCliente = Console.ReadLine();
+                    string continuar;
 
-                    venta.Total = venta.Cantidad * venta.Precio;
+                    do
+                    {
+                        Console.WriteLine();
+                        Console.Write("Ingrese el nombre del producto: ");
+                        string nombreProducto = Console.ReadLine();
 
-                    Console.WriteLine("Total de la venta: $" + venta.Total);
+                        Repositorioproducto repositorioProducto = new Repositorioproducto();
 
-                    repositorioVentas.Registro(venta);
+                        List<Producto> resultados = repositorioProducto.Buscar(nombreProducto);
 
-                    break;
+                        Producto producto = null;
 
-                case 2:
+                        if (resultados.Count > 0)
+                        {
+                            producto = resultados[0];
+                        }
 
-                    List<Venta> listaVentas = repositorioVentas.Lista();
+                        if (producto == null)
+                        {
+                            Console.WriteLine("No se encontró ese producto.");
+                        }
+                        else
+                        {
+                            VentaProducto ventaProducto = new VentaProducto();
 
-                    Console.WriteLine("============== LISTA DE VENTAS ==============");
+                            ventaProducto.Producto = producto;
 
-                    Console.WriteLine("ID | Empleado | Mat. Empleado | Producto | Cantidad | Precio | Mat. Cliente | Total");
+                            Console.Write("Ingrese la cantidad: ");
+                            ventaProducto.Cantidad = Convert.ToSingle(Console.ReadLine());
 
-                    foreach (Venta ven in listaVentas)
+                            ventaProducto.Total =
+                                (decimal)producto.Precio * (decimal)ventaProducto.Cantidad;
+
+                            venta.Productos.Add(ventaProducto);
+
+                            venta.Total += ventaProducto.Total;
+
+                            Console.WriteLine("Producto agregado.");
+                            Console.WriteLine("Total del producto: $" + ventaProducto.Total);
+                        }
+
+                        Console.WriteLine();
+                        Console.Write("¿Desea agregar otro producto? S - Sí / N - No: ");
+                        continuar = Console.ReadLine().ToUpper();
+
+                    } while (continuar == "S");
+
+                    Console.WriteLine();
+                    Console.WriteLine("============== RESUMEN DE VENTA ==============");
+
+                    foreach (VentaProducto vp in venta.Productos)
                     {
                         Console.WriteLine(
-                            $"{ven.ID} | {ven.Empleado} | {ven.CodigoMatriculaEmpleado} | {ven.Producto} | {ven.Cantidad} | ${ven.Precio} | {ven.CodigoMatriculaCliente} | ${ven.Total}"
+                            $"Producto: {vp.Producto.Nombre} | Cantidad: {vp.Cantidad} | Total: ${vp.Total}"
                         );
                     }
 
+                    Console.WriteLine("-----------------------------------------------");
+                    Console.WriteLine("TOTAL DE LA VENTA: $" + venta.Total);
+                    repositorioVentas.Registro(venta, codigoMatriculaCliente);
+
                     break;
 
-                case 3:
 
-                    Console.WriteLine("Ingrese el ID de la venta que desea eliminar:");
-                    venta.ID = Convert.ToInt32(Console.ReadLine());
+                // ================= HISTORIAL =================
+                case "H":
 
-                    repositorioVentas.Borrar(venta);
+                    List<Venta> listaVentas = repositorioVentas.Lista();
+
+                    Console.WriteLine("============== HISTORIAL DE VENTAS ==============");
+
+                    foreach (Venta ven in listaVentas)
+                    {
+                        Console.WriteLine("--------------------------------------------");
+                        Console.WriteLine("Código de venta: " + ven.CodigoVenta);
+                        Console.WriteLine("Empleado: " + ven.Empleado.Nombre);
+                        Console.WriteLine("Fecha: " + ven.Fecha);
+                        Console.WriteLine("Total: $" + ven.Total);
+
+                        Console.WriteLine("Productos:");
+
+                        foreach (VentaProducto vp in ven.Productos)
+                        {
+                            Console.WriteLine(
+                                $"Producto: {vp.Producto.Nombre} | Cantidad: {vp.Cantidad} | Total: ${vp.Total}"
+                            );
+                        }
+                    }
 
                     break;
 
@@ -279,20 +346,9 @@ switch (opcion)
                     Console.WriteLine("Opción no válida.");
 
                     break;
-
-                    Console.WriteLine("Opción no válida.");
-
-                    break;
             }
 
             break;
         }
-
-
-    // ================= OPCIÓN NO VÁLIDA =================
-    default:
-
-        Console.WriteLine("Opción no válida.");
-
-        break;
 }
+    

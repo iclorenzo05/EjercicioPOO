@@ -1,5 +1,4 @@
-﻿using EjercicioPOO.Interfaces;
-using MySql.Data.MySqlClient;
+﻿using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
 
@@ -11,38 +10,46 @@ namespace EjercicioPOO.Repositorios
         string conexionMySQL = "Server=localhost;Port=3307;Database=poo;User=root;Password=paola05;TreatTinyAsBoolean=false;";
 
         // REGISTRAR VENTA
-        public void Registro(Venta venta)
+        public void Registro(Venta venta, string codigoMatriculaCliente)
         {
             using (MySqlConnection conexion = new MySqlConnection(conexionMySQL))
             {
-                string consulta = "INSERT INTO ventas (Empleado, CodigoMatriculaEmpleado, Producto, Cantidad, Precio, CodigoMatriculaCliente, Total) VALUES (@Empleado, @CodigoMatriculaEmpleado, @Producto, @Cantidad, @Precio, @CodigoMatriculaCliente, @Total)";
+                string consulta = "INSERT INTO ventas " +
+                    "(Empleado, CodigoMatriculaEmpleado, Producto, Cantidad, Precio, CodigoMatriculaCliente, Total) " +
+                    "VALUES " +
+                    "(@Empleado, @CodigoMatriculaEmpleado, @Producto, @Cantidad, @Precio, @CodigoMatriculaCliente, @Total)";
 
-                using (MySqlCommand comando = new MySqlCommand(consulta, conexion))
+                try
                 {
-                    comando.Parameters.AddWithValue("@Empleado", venta.Empleado);
-                    comando.Parameters.AddWithValue("@CodigoMatriculaEmpleado", venta.CodigoMatriculaEmpleado);
-                    comando.Parameters.AddWithValue("@Producto", venta.Producto);
-                    comando.Parameters.AddWithValue("@Cantidad", venta.Cantidad);
-                    comando.Parameters.AddWithValue("@Precio", venta.Precio);
-                    comando.Parameters.AddWithValue("@CodigoMatriculaCliente", venta.CodigoMatriculaCliente);
-                    comando.Parameters.AddWithValue("@Total", venta.Total);
+                    conexion.Open();
 
-                    try
+                    foreach (VentaProducto ventaProducto in venta.Productos)
                     {
-                        conexion.Open();
-                        comando.ExecuteNonQuery();
+                        using (MySqlCommand comando = new MySqlCommand(consulta, conexion))
+                        {
+                            comando.Parameters.AddWithValue("@Empleado", venta.Empleado.Nombre);
+                            comando.Parameters.AddWithValue("@CodigoMatriculaEmpleado", venta.Empleado.CodigoMatricula);
+                            comando.Parameters.AddWithValue("@Producto", ventaProducto.Producto.Nombre);
+                            comando.Parameters.AddWithValue("@Cantidad", ventaProducto.Cantidad);
+                            comando.Parameters.AddWithValue("@Precio", ventaProducto.Producto.Precio);
+                            comando.Parameters.AddWithValue("@CodigoMatriculaCliente", codigoMatriculaCliente);
+                            comando.Parameters.AddWithValue("@Total", ventaProducto.Total);
 
-                        Console.WriteLine("Venta registrada correctamente.");
+                            comando.ExecuteNonQuery();
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine("Error al registrar venta: " + ex.Message);
-                    }
+
+                    Console.WriteLine("Venta registrada correctamente.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Error al registrar venta: " + ex.Message);
                 }
             }
         }
 
 
+        // LISTAR VENTAS
         public List<Venta> Lista()
         {
             List<Venta> lista = new List<Venta>();
@@ -65,14 +72,27 @@ namespace EjercicioPOO.Repositorios
                             {
                                 Venta venta = new Venta();
 
-                                venta.ID = Convert.ToInt32(dr["ID"]);
-                                venta.Empleado = dr["Empleado"].ToString();
-                                venta.CodigoMatriculaEmpleado = dr["CodigoMatriculaEmpleado"].ToString();
-                                venta.Producto = dr["Producto"].ToString();
-                                venta.Cantidad = Convert.ToInt32(dr["Cantidad"]);
-                                venta.Precio = Convert.ToDouble(dr["Precio"]);
-                                venta.CodigoMatriculaCliente = dr["CodigoMatriculaCliente"].ToString();
-                                venta.Total = Convert.ToDouble(dr["Total"]);
+                                venta.Productos = new List<VentaProducto>();
+
+                                Empleado empleado = new Empleado();
+                                empleado.Nombre = dr["Empleado"].ToString();
+                                empleado.CodigoMatricula = dr["CodigoMatriculaEmpleado"].ToString();
+
+                                venta.Empleado = empleado;
+
+                                Producto producto = new Producto();
+                                producto.Nombre = dr["Producto"].ToString();
+                                producto.Precio = Convert.ToDouble(dr["Precio"]);
+
+                                VentaProducto ventaProducto = new VentaProducto();
+
+                                ventaProducto.Producto = producto;
+                                ventaProducto.Cantidad = Convert.ToSingle(dr["Cantidad"]);
+                                ventaProducto.Total = Convert.ToDecimal(dr["Total"]);
+
+                                venta.Productos.Add(ventaProducto);
+
+                                venta.Total = ventaProducto.Total;
 
                                 lista.Add(venta);
                             }
@@ -89,9 +109,10 @@ namespace EjercicioPOO.Repositorios
 
             return lista;
         }
-    
 
-    public void Borrar(Venta venta)
+
+        // ELIMINAR VENTA
+        public void Borrar(int id)
         {
             using (MySqlConnection conexion = new MySqlConnection(conexionMySQL))
             {
@@ -99,7 +120,7 @@ namespace EjercicioPOO.Repositorios
 
                 using (MySqlCommand comando = new MySqlCommand(consulta, conexion))
                 {
-                    comando.Parameters.AddWithValue("@ID", venta.ID);
+                    comando.Parameters.AddWithValue("@ID", id);
 
                     try
                     {
