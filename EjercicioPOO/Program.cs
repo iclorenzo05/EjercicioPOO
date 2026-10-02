@@ -228,12 +228,7 @@ switch (opcion)
 
                     Venta venta = new Venta();
 
-                    // Datos generales de la venta
-                    venta.CodigoVenta = DateTime.Now.ToString("yyyyMMddHHmmss");
-                    venta.Fecha = DateTime.Now;
                     venta.Empleado = empleadoLogin;
-                    venta.Productos = new List<VentaProducto>();
-                    venta.Total = 0;
 
                     Console.WriteLine("============== NUEVA VENTA ==============");
                     Console.WriteLine("Código de venta: " + venta.CodigoVenta);
@@ -251,19 +246,12 @@ switch (opcion)
                     do
                     {
                         Console.WriteLine();
-                        Console.Write("Ingrese el nombre del producto: ");
-                        string nombreProducto = Console.ReadLine();
+                        Console.Write("Ingrese el ID del producto: ");
+                        int idProducto = Convert.ToInt32(Console.ReadLine());
 
                         Repositorioproducto repositorioProducto = new Repositorioproducto();
 
-                        List<Producto> resultados = repositorioProducto.Buscar(nombreProducto);
-
-                        Producto productoVenta = null;
-
-                        if (resultados.Count > 0)
-                        {
-                            productoVenta = resultados[0];
-                        }
+                        Producto productoVenta = repositorioProducto.BuscarPorId(idProducto);
 
                         if (productoVenta == null)
                         {
@@ -271,30 +259,20 @@ switch (opcion)
                         }
                         else
                         {
-                            VentaProducto ventaProducto = new VentaProducto();
-
-                            ventaProducto.Producto = productoVenta;
-
                             Console.Write("Ingrese la cantidad: ");
-                            ventaProducto.Cantidad = Convert.ToSingle(Console.ReadLine());
+                            float cantidad = Convert.ToSingle(Console.ReadLine());
 
-                            // Calcular total del producto
-                            ventaProducto.Total =
-                                (decimal)productoVenta.Precio *
-                                (decimal)ventaProducto.Cantidad;
+                            venta.AgregarProducto(productoVenta, cantidad);
 
-                            // Agregar producto a la venta
-                            venta.Productos.Add(ventaProducto);
-
-                            // Sumar al total general
-                            venta.Total += ventaProducto.Total;
+                            VentaProducto ultimoProducto =
+                                venta.Productos[venta.Productos.Count - 1];
 
                             Console.WriteLine();
                             Console.WriteLine("Producto agregado.");
                             Console.WriteLine(
                                 "Total del producto: $" +
-                                ventaProducto.Total.ToString("F2")
-                            );
+                                ultimoProducto.Total.ToString("F2")
+                         );
                         }
 
                         Console.WriteLine();
@@ -367,30 +345,40 @@ switch (opcion)
                         "============== HISTORIAL DE VENTAS =============="
                     );
 
-                    foreach (Venta ven in listaVentas)
+                    if (listaVentas.Count == 0)
                     {
-                        Console.WriteLine("--------------------------------------------");
-                        Console.WriteLine(
-                            "Empleado: " + ven.Empleado.Nombre
-                        );
-                        Console.WriteLine("Total: $" + ven.Total);
-
-                        Console.WriteLine("Productos:");
-
-                        foreach (VentaProducto vp in ven.Productos)
+                        Console.WriteLine("No hay ventas registradas.");
+                    }
+                    else
+                    {
+                        foreach (Venta ven in listaVentas)
                         {
+                            Console.WriteLine("--------------------------------------------");
+                            Console.WriteLine("ID de venta: " + ven.ID);
+                            Console.WriteLine("Código de venta: " + ven.CodigoVenta);
+                            Console.WriteLine("Empleado ID: " + ven.Empleado.ID);
                             Console.WriteLine(
-                                $"Producto: {vp.Producto.Nombre} | " +
-                                $"Cantidad: {vp.Cantidad} | " +
-                                $"Total: ${vp.Total}"
+                                "Fecha: " + ven.Fecha.ToString("dd/MM/yyyy HH:mm")
                             );
+                            Console.WriteLine("Total: $" + ven.Total.ToString("F2"));
+
+                            Console.WriteLine("Productos:");
+
+                            foreach (VentaProducto vp in ven.Productos)
+                            {
+                                Console.WriteLine(
+                                    $"  {vp.Producto.Nombre} | " +
+                                    $"Precio: ${vp.Precio:F2} | " +
+                                    $"Cantidad: {vp.Cantidad} | " +
+                                    $"Total: ${vp.Total:F2}"
+                                );
+                            }
                         }
+
+                        Console.WriteLine("--------------------------------------------");
                     }
 
                     break;
-
-
-                default:
 
                     Console.WriteLine("Opción no válida.");
 
