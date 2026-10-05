@@ -1,48 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using EjercicioPOO.Repositorios;
 using MySql.Data.MySqlClient;
+
 namespace EjercicioPOO
 {
     internal class Venta
     {
-        public Venta()
+        public Venta(Empleado usuario)
         {
             CodigoVenta = GeneraCodigoVenta();
             Fecha = DateTime.Now;
+            Empleado = usuario;
             Productos = new List<VentaProducto>();
         }
 
         private string GeneraCodigoVenta()
         {
-            string codigo = DateTime.Now.ToString("yyyyMMdd");
+            RepositorioVentas repoVentas = new RepositorioVentas();
 
-            string consulta = "select count(*)+1 from ventas where DATE(fecha)=CURDATE()";
-
-            MySqlConnection conn = new MySqlConnection(Utils.connStr);
-            MySqlCommand comm = new MySqlCommand(consulta, conn);
-
-            int consecutivo = 0;
-
-            try
-            {
-                conn.Open();
-
-                MySqlDataReader dr = comm.ExecuteReader();
-
-                if (dr.Read())
-                {
-                    consecutivo = Convert.ToInt32(dr[0]);
-                }
-
-                dr.Close();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-            }
-
-            return codigo + consecutivo.ToString("D2");
+            return DateTime.Now.ToString("yyyyMMdd") +
+                   repoVentas.NextSale().ToString("000");
         }
 
         public int ID { get; set; }

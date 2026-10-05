@@ -9,10 +9,36 @@ namespace EjercicioPOO.Repositorios
         // Datos para conectarnos a MySQL
         string conexionMySQL = "Server=localhost;Port=3307;Database=poo;User=root;Password=paola05;TreatTinyAsBoolean=false;";
 
+
+        // OBTENER SIGUIENTE NÚMERO DE VENTA DEL DÍA
+        public int NextSale()
+        {
+            using (MySqlConnection conexion =
+                new MySqlConnection(conexionMySQL))
+            {
+                string consulta =
+                    "SELECT COUNT(*) + 1 " +
+                    "FROM ventas " +
+                    "WHERE DATE(fecha) = CURDATE()";
+
+                using (MySqlCommand comando =
+                    new MySqlCommand(consulta, conexion))
+                {
+                    conexion.Open();
+
+                    return Convert.ToInt32(
+                        comando.ExecuteScalar()
+                    );
+                }
+            }
+        }
+
+
         // REGISTRAR VENTA
         public void Registro(Venta venta, string codigoMatriculaCliente)
         {
-            using (MySqlConnection conexion = new MySqlConnection(conexionMySQL))
+            using (MySqlConnection conexion =
+                new MySqlConnection(conexionMySQL))
             {
                 try
                 {
@@ -100,7 +126,9 @@ namespace EjercicioPOO.Repositorios
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error al registrar venta: " + ex.Message);
+                    Console.WriteLine(
+                        "Error al registrar venta: " + ex.Message
+                    );
                 }
             }
         }
@@ -140,7 +168,8 @@ namespace EjercicioPOO.Repositorios
                     {
                         conexion.Open();
 
-                        MySqlDataReader dr = comando.ExecuteReader();
+                        MySqlDataReader dr =
+                            comando.ExecuteReader();
 
                         while (dr.Read())
                         {
@@ -154,7 +183,15 @@ namespace EjercicioPOO.Repositorios
                             // Si no existe, crearla
                             if (venta == null)
                             {
-                                venta = new Venta();
+                                // Primero obtenemos el empleado
+                                Empleado empleado =
+                                    new Empleado();
+
+                                empleado.ID =
+                                    Convert.ToInt32(dr["empleado"]);
+
+                                // Se pasa el empleado al constructor de Venta
+                                venta = new Venta(empleado);
 
                                 venta.ID = idVenta;
 
@@ -170,18 +207,12 @@ namespace EjercicioPOO.Repositorios
                                 venta.Productos =
                                     new List<VentaProducto>();
 
-                                Empleado empleado = new Empleado();
-
-                                empleado.ID =
-                                    Convert.ToInt32(dr["empleado"]);
-
-                                venta.Empleado = empleado;
-
                                 lista.Add(venta);
                             }
 
                             // Crear el producto de esta venta
-                            Producto producto = new Producto();
+                            Producto producto =
+                                new Producto();
 
                             producto.ID =
                                 Convert.ToInt32(dr["ID_producto"]);
@@ -196,7 +227,8 @@ namespace EjercicioPOO.Repositorios
                             VentaProducto ventaProducto =
                                 new VentaProducto();
 
-                            ventaProducto.Producto = producto;
+                            ventaProducto.Producto =
+                                producto;
 
                             ventaProducto.Precio =
                                 Convert.ToDecimal(dr["precio"]);
@@ -208,7 +240,9 @@ namespace EjercicioPOO.Repositorios
                                 Convert.ToDecimal(dr["TotalProducto"]);
 
                             // Agregar el producto a la venta
-                            venta.Productos.Add(ventaProducto);
+                            venta.Productos.Add(
+                                ventaProducto
+                            );
                         }
 
                         dr.Close();
@@ -216,7 +250,8 @@ namespace EjercicioPOO.Repositorios
                     catch (Exception ex)
                     {
                         Console.WriteLine(
-                            "Error al listar ventas: " + ex.Message
+                            "Error al listar ventas: " +
+                            ex.Message
                         );
                     }
                 }
@@ -225,6 +260,98 @@ namespace EjercicioPOO.Repositorios
             return lista;
         }
 
+        // LISTAR PRODUCTOS DE UNA VENTA
+        public List<VentaProducto> ListaProductosPorVenta(string codigoVenta)
+        {
+            List<VentaProducto> productos =
+                new List<VentaProducto>();
+
+            using (MySqlConnection conexion =
+                new MySqlConnection(conexionMySQL))
+            {
+                string consulta =
+                    "SELECT " +
+                    "dp.ID_producto, " +
+                    "dp.precio, " +
+                    "dp.cantidad, " +
+                    "dp.total, " +
+                    "p.Nombre AS NombreProducto " +
+                    "FROM data_productos dp " +
+                    "INNER JOIN productos p " +
+                    "ON dp.ID_producto = p.ID " +
+                    "WHERE dp.CodigoVenta = @CodigoVenta";
+
+                using (MySqlCommand comando =
+                    new MySqlCommand(consulta, conexion))
+                {
+                    comando.Parameters.AddWithValue(
+                        "@CodigoVenta",
+                        codigoVenta
+                    );
+
+                    try
+                    {
+                        conexion.Open();
+
+                        MySqlDataReader dr =
+                            comando.ExecuteReader();
+
+                        while (dr.Read())
+                        {
+                            Producto producto =
+                                new Producto();
+
+                            producto.ID =
+                                Convert.ToInt32(
+                                    dr["ID_producto"]
+                                );
+
+                            producto.Nombre =
+                                dr["NombreProducto"].ToString();
+
+                            producto.Precio =
+                                Convert.ToDouble(
+                                    dr["precio"]
+                                );
+
+                            VentaProducto ventaProducto =
+                                new VentaProducto();
+
+                            ventaProducto.Producto =
+                                producto;
+
+                            ventaProducto.Precio =
+                                Convert.ToDecimal(
+                                    dr["precio"]
+                                );
+
+                            ventaProducto.Cantidad =
+                                Convert.ToSingle(
+                                    dr["cantidad"]
+                                );
+
+                            ventaProducto.Total =
+                                Convert.ToDecimal(
+                                    dr["total"]
+                                );
+
+                            productos.Add(ventaProducto);
+                        }
+
+                        dr.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(
+                            "Error al listar productos de la venta: " +
+                            ex.Message
+                        );
+                    }
+                }
+            }
+
+            return productos;
+        }
 
         // ELIMINAR VENTA
         public void Borrar(int id)
@@ -243,7 +370,9 @@ namespace EjercicioPOO.Repositorios
                     string codigoVenta = null;
 
                     using (MySqlCommand comandoCodigo =
-                        new MySqlCommand(consultaCodigo, conexion))
+                        new MySqlCommand(
+                            consultaCodigo,
+                            conexion))
                     {
                         comandoCodigo.Parameters.AddWithValue(
                             "@ID",
@@ -255,7 +384,8 @@ namespace EjercicioPOO.Repositorios
 
                         if (resultado != null)
                         {
-                            codigoVenta = resultado.ToString();
+                            codigoVenta =
+                                resultado.ToString();
                         }
                     }
 
@@ -320,7 +450,8 @@ namespace EjercicioPOO.Repositorios
                 catch (Exception ex)
                 {
                     Console.WriteLine(
-                        "Error al eliminar venta: " + ex.Message
+                        "Error al eliminar venta: " +
+                        ex.Message
                     );
                 }
             }
