@@ -1,3 +1,5 @@
 <Solution>
+  <Project Path="Core/Core.csproj" Id="83291622-2e09-4daf-ad9e-f9c4641f110d" />
   <Project Path="EjercicioPOO/EjercicioPOO.csproj" />
+  <Project Path="Tienda/Tienda.csproj" Id="cb77675d-5149-4341-8cfc-4ad8c775693f" />
 </Solution>
