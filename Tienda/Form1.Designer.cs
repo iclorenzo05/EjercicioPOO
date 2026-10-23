@@ -38,6 +38,7 @@
             label1 = new Label();
             button1 = new Button();
             label3 = new Label();
+            button2 = new Button();
             ((System.ComponentModel.ISupportInitialize)lista).BeginInit();
             SuspendLayout();
             // 
@@ -132,11 +133,22 @@
             label3.TabIndex = 9;
             label3.Text = "Producto";
             // 
+            // button2
+            //
+            button2.Location = new Point(661, 119);
+            button2.Name = "button2";
+            button2.Size = new Size(112, 34);
+            button2.TabIndex = 10;
+            button2.Text = "Registros";
+            button2.UseVisualStyleBackColor = true;
+            button2.Click += btnAbrirRegistros_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(10F, 25F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(873, 669);
+            Controls.Add(button2);
             Controls.Add(label3);
             Controls.Add(button1);
             Controls.Add(label1);
@@ -166,5 +178,6 @@
         private Label label1;
         private Button button1;
         private Label label3;
+        private Button button2;
     }
 }

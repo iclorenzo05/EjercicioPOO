@@ -31,6 +31,11 @@ namespace Tienda
             // Mostrar el total inicial.
             label1.Text = "$0.00";
         }
+        private void AbrirForm2()
+        {
+            Form2 pantalla = new Form2();
+            pantalla.Show();
+        }
 
         private void btnAgregar_Click(object sender, EventArgs e)
         {
@@ -107,7 +112,7 @@ namespace Tienda
             }
 
 
-}
+        }
 
 
         // BOTÓN PAGAR: registra la venta.
@@ -182,6 +187,11 @@ namespace Tienda
         private void txtCantidad_TextChanged(object sender, EventArgs e)
         {
             // Evento que se activa cuando cambia la cantidad.
+        }
+
+        private void btnAbrirRegistros_Click(object sender, EventArgs e)
+        {
+            AbrirForm2();
         }
     }
 }

@@ -1,8 +1,12 @@
-﻿using Core.clases;
+﻿using Core;
+using Core.clases;
 using Core.Interfaces;
+using Core.repositorio;
+using Coree;
 using MySql.Data.MySqlClient;
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace Core.Repositorios
 {
@@ -13,8 +17,8 @@ namespace Core.Repositorios
         "Server=localhost;Port=3307;Database=poo;User=root;Password=paola05;TreatTinyAsBoolean=false;";
 
 
-    // REGISTRAR PRODUCTO
-    public void Registro(Producto producto)
+        // REGISTRAR PRODUCTO
+        public void Registro(Producto producto)
         {
             using (MySqlConnection conexion =
                 new MySqlConnection(conexionMySQL))
@@ -48,6 +52,8 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
                             "Error al registrar producto: " + ex.Message);
                     }
@@ -105,8 +111,10 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
-                            "Error al actualizar producto: " + ex.Message);
+                            "Error al registrar producto: " + ex.Message);
                     }
                 }
             }
@@ -147,8 +155,10 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
-                            "Error al eliminar producto: " + ex.Message);
+                            "Error al registrar producto: " + ex.Message);
                     }
                 }
             }
@@ -200,8 +210,10 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
-                            "Error al listar productos: " + ex.Message);
+                            "Error al registrar producto: " + ex.Message);
                     }
                 }
             }
@@ -259,8 +271,10 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
-                            "Error al buscar productos: " + ex.Message);
+                            "Error al registrar producto: " + ex.Message);
                     }
                 }
             }
@@ -315,8 +329,10 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
-                            "Error al buscar producto: " + ex.Message);
+                            "Error al registrar producto: " + ex.Message);
                     }
                 }
             }
@@ -377,16 +393,28 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
-                            "Error al buscar producto por código de barras: "
-                            + ex.Message);
+                            "Error al registrar producto: " + ex.Message);
                     }
                 }
             }
 
             return producto;
         }
+
+        // REGISTRAR ERRORES
+        private void RegistrarError(Exception ex)
+        {
+            Log log = new Log();
+            log.Fecha = DateTime.Now;
+            log.ex = ex;
+            log.empleado = new Empleado();
+            log.tipo = 1;
+
+            repositorioLog logs = new repositorioLog();
+            logs.Registro(log);
+        }
     }
-
-
 }

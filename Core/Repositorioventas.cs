@@ -1,8 +1,9 @@
-﻿using Core.clases;
-using Core.Interfaces;
+﻿using Core;
+using Core.clases;
+using Core.repositorio;
+using Coree;
 using MySql.Data.MySqlClient;
 using System;
-using System.Collections.Generic;
 
 namespace Core.Repositorios
 {
@@ -18,23 +19,36 @@ namespace Core.Repositorios
             using (MySqlConnection conexion =
                 new MySqlConnection(conexionMySQL))
             {
-                string consulta =
-                    "SELECT COUNT(*) + 1 " +
-                    "FROM ventas " +
-                    "WHERE DATE(fecha) = CURDATE()";
-
-                using (MySqlCommand comando =
-                    new MySqlCommand(consulta, conexion))
+                try
                 {
-                    conexion.Open();
+                    string consulta =
+                        "SELECT COUNT(*) + 1 " +
+                        "FROM ventas " +
+                        "WHERE DATE(fecha) = CURDATE()";
 
-                    return Convert.ToInt32(
-                        comando.ExecuteScalar()
+                    using (MySqlCommand comando =
+                        new MySqlCommand(consulta, conexion))
+                    {
+                        conexion.Open();
+
+                        return Convert.ToInt32(
+                            comando.ExecuteScalar()
+                        );
+                    }
+                }
+                catch (Exception ex)
+                {
+                    RegistrarError(ex);
+
+                    Console.WriteLine(
+                        "Error al obtener el siguiente número de venta: "
+                        + ex.Message
                     );
+
+                    return 0;
                 }
             }
         }
-
 
         // REGISTRAR VENTA
         public bool Registro(Venta venta, string codigoMatriculaCliente)
@@ -127,8 +141,36 @@ namespace Core.Repositorios
                     Console.WriteLine("Venta registrada correctamente.");
                     return true;
                 }
+                catch (MySqlException ex)
+                {
+                    // Registrar el error de MySQL
+                    Log log = new Log();
+                    log.Fecha = DateTime.Now;
+                    log.ex = ex;
+                    log.empleado = new Empleado();
+                    log.tipo = 1;
+
+                    repositorioLog logs = new repositorioLog();
+                    logs.Registro(log);
+
+                    Console.WriteLine(
+                        "Error de MySQL al registrar venta: " + ex.Message
+                    );
+
+                    return false;
+                }
                 catch (Exception ex)
                 {
+                    // Registrar cualquier otro error
+                    Log log = new Log();
+                    log.Fecha = DateTime.Now;
+                    log.ex = ex;
+                    log.empleado = new Empleado();
+                    log.tipo = 1;
+
+                    repositorioLog logs = new repositorioLog();
+                    logs.Registro(log);
+
                     Console.WriteLine(
                         "Error al registrar venta: " + ex.Message
                     );
@@ -254,6 +296,8 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
                             "Error al listar ventas: " +
                             ex.Message
@@ -347,6 +391,8 @@ namespace Core.Repositorios
                     }
                     catch (Exception ex)
                     {
+                        RegistrarError(ex);
+
                         Console.WriteLine(
                             "Error al listar productos de la venta: " +
                             ex.Message
@@ -454,12 +500,26 @@ namespace Core.Repositorios
                 }
                 catch (Exception ex)
                 {
+                    RegistrarError(ex);
+
                     Console.WriteLine(
                         "Error al eliminar venta: " +
                         ex.Message
                     );
                 }
             }
+        }
+        // REGISTRAR ERRORES
+        private void RegistrarError(Exception ex)
+        {
+            Log log = new Log();
+            log.Fecha = DateTime.Now;
+            log.ex = ex;
+            log.empleado = new Empleado();
+            log.tipo = 1;
+
+            repositorioLog logs = new repositorioLog();
+            logs.Registro(log);
         }
     }
 }
